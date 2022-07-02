@@ -1,7 +1,6 @@
 package diff
 
 import (
-	"fmt"
 	"io/ioutil"
 	"reflect"
 )
@@ -33,10 +32,9 @@ func Compare(src, dest interface{}) bool {
 	case reflect.Slice:
 		return compareSlices(s, d)
 	default:
-		fmt.Println("Not found!")
+		return src == dest // for primitives
 	}
 	// TODO: Compare structs?
-	return src == dest // for primitives
 }
 
 func isSameKind(s, d reflect.Value) bool {
@@ -54,7 +52,6 @@ func compareMaps(src, dest reflect.Value) bool {
 
 	for _, key := range s {
 		keys[key.String()] = true
-		fmt.Printf("%T", key)
 
 	}
 	for _, key := range d {
