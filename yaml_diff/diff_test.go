@@ -71,7 +71,8 @@ func TestCompare(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, Compare(tt.src, tt.dest))
+			res, _ := Compare(tt.src, tt.dest)
+			assert.Equal(t, tt.expected, res)
 		})
 	}
 }
