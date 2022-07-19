@@ -1,6 +1,8 @@
 package goplay
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,4 +37,18 @@ func BenchmarkMapAlgo(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		mapBinsRules(rules, testcase)
 	}
+}
+
+func TestFoo(t *testing.T) {
+	this := foo{
+		Bar: "",
+		Baz: 30,
+	}
+	js := `{"bar": "james"}`
+	json.Unmarshal([]byte(js), &this) // Unmarshal only populates the fields that are present in bytes
+	fmt.Println(this)
+
+	nextjs := `{"baz": 39}`
+	json.Unmarshal([]byte(nextjs), &this)
+	fmt.Println(this)
 }

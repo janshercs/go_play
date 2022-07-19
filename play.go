@@ -58,3 +58,8 @@ func fulfilsRules(bin string) bool {
 	}
 	return false
 }
+
+type foo struct {
+	Bar string `json:"bar"`
+	Baz int    `json:"baz"`
+}
