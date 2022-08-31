@@ -1,6 +1,12 @@
 package goplay
 
-import "strings"
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"strings"
+	"time"
+)
 
 func bruteForceBinsRules(rules, bins []string) []string {
 	subset := make([]string, 0, len(bins))
@@ -62,4 +68,24 @@ func fulfilsRules(bin string) bool {
 type foo struct {
 	Bar string `json:"bar"`
 	Baz int    `json:"baz"`
+}
+
+func sleeper(ctx context.Context) string {
+	time.Sleep(1 * time.Second)
+	return "hi"
+}
+
+type PaymentService struct {
+	database sql.DB
+}
+
+type Repository interface {
+	func Query(string) err
+}
+
+func (s *PaymentService) Pay(person string, amount int) {
+	// legacy code ...
+	s.database.Query("...") // Yes, this is a security risk
+	//legacy code ...
+	s.database.Exec("...")
 }
