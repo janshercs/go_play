@@ -2,8 +2,14 @@ package goplay
 
 import (
 	"context"
-	"database/sql"
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -75,17 +81,100 @@ func sleeper(ctx context.Context) string {
 	return "hi"
 }
 
-type PaymentService struct {
-	database sql.DB
+var (
+	token = ""
+	url   = ""
+)
+
+func CallFwF() {
+	cw := initCsv()
+	today := time.Now()
+
+	for _, project := range []string{"pandora", "fintech"} {
+		for _, flag := range flags {
+			client := &http.Client{}
+			req, err := http.NewRequest("GET", fmt.Sprintf(url, project, flag), nil)
+			if err != nil {
+				log.Fatal(err)
+			}
+			req.Header.Set("authority", "")
+			req.Header.Set("accept", "*/*")
+			req.Header.Set("accept-language", "en-GB,en-US;q=0.9,en;q=0.8")
+			req.Header.Set("app-version", "13.9.1")
+			req.Header.Set("authorization", token)
+			req.Header.Set("cache-control", "no-cache")
+			req.Header.Set("content-type", "application/json")
+			req.Header.Set("origin", "")
+			req.Header.Set("pragma", "no-cache")
+			req.Header.Set("referer", "/")
+			req.Header.Set("sec-ch-ua", `"Google Chrome";v="111", "Not(A:Brand";v="8", "Chromium";v="111"`)
+			req.Header.Set("sec-ch-ua-mobile", "?0")
+			req.Header.Set("sec-ch-ua-platform", `"macOS"`)
+			req.Header.Set("sec-fetch-dest", "empty")
+			req.Header.Set("sec-fetch-mode", "cors")
+			req.Header.Set("sec-fetch-site", "same-site")
+			req.Header.Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36")
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer resp.Body.Close()
+			bodyText, err := io.ReadAll(resp.Body)
+
+			var response FwFResponse
+			json.Unmarshal(bodyText, &response)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			changes := len(response.Result)
+			log.Printf("%s flag has %d results", flag, changes)
+			if changes == 0 {
+				continue
+			}
+			lastChange, _ := time.Parse(time.RFC3339, response.Result[0].Date)
+			firstChange, _ := time.Parse(time.RFC3339, response.Result[changes-1].Date)
+
+			difference := lastChange.Sub(firstChange)
+			differenceDays := int(difference.Hours() / 24)
+
+			daysSinceLast := int(today.Sub(lastChange).Hours() / 24)
+			daysSinceFirst := int(today.Sub(firstChange).Hours() / 24)
+
+			writeToCsv(cw, []string{
+				flag,
+				strconv.Itoa(changes),
+				response.Result[0].Date,
+				strconv.Itoa(differenceDays / changes),
+				strconv.Itoa(daysSinceLast),
+				strconv.Itoa(daysSinceFirst / changes)},
+			)
+			time.Sleep(10 * time.Millisecond)
+		}
+	}
+
 }
 
-type Repository interface {
-	func Query(string) err
+func initCsv() *csv.Writer {
+	file, err := os.Create("flag_usage.csv")
+	if err != nil {
+		panic(err)
+	}
+	csvwriter := csv.NewWriter(file)
+	csvwriter.Write([]string{"flag", "changes", "last date amended", "days per change", "days since last change", "days per change till current"})
+	csvwriter.Flush()
+
+	return csvwriter
 }
 
-func (s *PaymentService) Pay(person string, amount int) {
-	// legacy code ...
-	s.database.Query("...") // Yes, this is a security risk
-	//legacy code ...
-	s.database.Exec("...")
+func writeToCsv(w *csv.Writer, s []string) {
+	w.Write(s)
+	w.Flush()
+}
+
+type FwFResponse struct {
+	Result []details `json:"result"`
+}
+type details struct {
+	Date string `json:"date"`
 }

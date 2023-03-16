@@ -89,3 +89,11 @@ func TestScope(t *testing.T) {
 		})
 	}
 }
+
+func TestCallFwF(t *testing.T) {
+	CallFwF()
+}
+
+func TestCreateCsv(t *testing.T) {
+	initCsv()
+}
