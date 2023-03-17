@@ -82,8 +82,9 @@ func sleeper(ctx context.Context) string {
 }
 
 var (
-	token = ""
-	url   = ""
+	token = os.Getenv("FWF_TOKEN")
+	url   = os.Getenv("FWF_URL")
+	limit = 100
 )
 
 func CallFwF() {
@@ -93,7 +94,7 @@ func CallFwF() {
 	for _, project := range []string{"pandora", "fintech"} {
 		for _, flag := range flags {
 			client := &http.Client{}
-			req, err := http.NewRequest("GET", fmt.Sprintf(url, project, flag), nil)
+			req, err := http.NewRequest("GET", fmt.Sprintf(url, project, limit, flag), nil)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -106,7 +107,6 @@ func CallFwF() {
 			req.Header.Set("content-type", "application/json")
 			req.Header.Set("origin", "")
 			req.Header.Set("pragma", "no-cache")
-			req.Header.Set("referer", "/")
 			req.Header.Set("sec-ch-ua", `"Google Chrome";v="111", "Not(A:Brand";v="8", "Chromium";v="111"`)
 			req.Header.Set("sec-ch-ua-mobile", "?0")
 			req.Header.Set("sec-ch-ua-platform", `"macOS"`)
@@ -128,7 +128,7 @@ func CallFwF() {
 			}
 
 			changes := len(response.Result)
-			log.Printf("%s flag has %d results", flag, changes)
+			log.Printf("%s flag has %d results", flag, response.Count)
 			if changes == 0 {
 				continue
 			}
@@ -173,6 +173,7 @@ func writeToCsv(w *csv.Writer, s []string) {
 }
 
 type FwFResponse struct {
+	Count  int       `json:"count"`
 	Result []details `json:"result"`
 }
 type details struct {
