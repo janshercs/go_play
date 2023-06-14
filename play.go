@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -178,4 +179,50 @@ type FwFResponse struct {
 }
 type details struct {
 	Date string `json:"date"`
+}
+
+func reciever(ch <-chan string) {
+	for s := range ch {
+		time.Sleep(1 * time.Second)
+		fmt.Println(s)
+	}
+}
+
+func forgottenReciever() {
+	ch := make(chan string)
+
+	go reciever(ch)
+	return
+}
+
+type value struct {
+	mu    sync.Mutex
+	value int
+}
+
+func printSum(wg *sync.WaitGroup, v1, v2 *value, theOneLock *sync.Mutex) {
+	defer wg.Done()
+
+	theOneLock.Lock()
+	defer theOneLock.Unlock()
+
+	v1.mu.Lock()
+	defer v1.mu.Unlock()
+
+	time.Sleep(2 * time.Second)
+
+	v2.mu.Lock()
+	defer v2.mu.Unlock()
+
+	fmt.Printf("sum=%v\n", v1.value+v2.value)
+}
+
+func deadlock() {
+	var wg sync.WaitGroup
+	var theOneLock sync.Mutex
+	var a, b value
+	wg.Add(2)
+	go printSum(&wg, &a, &b, &theOneLock)
+	go printSum(&wg, &b, &a, &theOneLock)
+	wg.Wait()
 }

@@ -97,3 +97,13 @@ func TestCallFwF(t *testing.T) {
 func TestCreateCsv(t *testing.T) {
 	initCsv()
 }
+
+func TestDeadlock(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		deadlock()
+	}
+}
+
+func TestDeadlock2(t *testing.T) {
+	leaker(1 * time.Microsecond)
+}
