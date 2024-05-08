@@ -1,7 +1,7 @@
 import json
 
 # Opening JSON file
-with open('../datadogresults.json') as f:
+with open('./called_sap_but_failed_update.json') as f:
 
     # returns JSON object as
     # a dictionary
