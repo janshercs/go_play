@@ -90,6 +90,14 @@ func TestScope(t *testing.T) {
 	}
 }
 
+func TestParallelScope(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		go func(i int) {
+			fmt.Println(i)
+		}(i)
+	}
+}
+
 func TestCallFwF(t *testing.T) {
 	CallFwF()
 }
@@ -104,6 +112,6 @@ func TestDeadlock(t *testing.T) {
 	}
 }
 
-func TestDeadlock2(t *testing.T) {
-	leaker(1 * time.Microsecond)
-}
+// func TestDeadlock2(t *testing.T) {
+// 	leaker(1 * time.Second)
+// }

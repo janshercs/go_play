@@ -78,7 +78,7 @@ type foo struct {
 }
 
 func sleeper(ctx context.Context) string {
-	time.Sleep(1 * time.Second)
+	time.Sleep(1 * time.Millisecond)
 	return "hi"
 }
 
